@@ -31,7 +31,7 @@ RUN set -ex \
     && apt-get update -yqq \
     && apt-get upgrade -yqq \
     && apt-get install -yqq --no-install-recommends \
-        $buildDeps \
+        "$buildDeps \
         freetds-bin \
         build-essential \
         default-libmysqlclient-dev \
@@ -41,14 +41,14 @@ RUN set -ex \
         netcat-openbsd \
         locales \
         iputils-ping \
-        telnet \
+        telnet" \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
     && pip install -U --no-cache-dir pip==24.3.1 setuptools==75.8.0 wheel==0.45.1 \
     && pip install --no-cache-dir -r requirements.txt \
-    && apt-get purge --auto-remove -yqq $buildDeps \
+    && apt-get purge --auto-remove -yqq "$buildDeps" \
     && apt-get autoremove -yqq --purge \
     && apt-get clean \
     && rm -rf \
