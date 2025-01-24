@@ -8,8 +8,6 @@ ENV TERM linux
 # Airflow
 ARG AIRFLOW_VERSION=2.10.4
 ARG AIRFLOW_HOME=/usr/local/airflow
-ARG AIRFLOW_DEPS=""
-ARG PYTHON_DEPS=""
 ARG SPARK_VERSION=3.5.4
 ARG HADOOP_VERSION=3
 ENV AIRFLOW_GPL_UNIDECODE yes
@@ -36,7 +34,7 @@ RUN set -ex \
     && apt-get update -yqq \
     && apt-get upgrade -yqq \
     && apt-get install -yqq --no-install-recommends \
-        "$buildDeps" \
+        $buildDeps \
         freetds-bin \
         build-essential \
         default-libmysqlclient-dev \
@@ -53,72 +51,71 @@ RUN set -ex \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
     && pip install -U pip setuptools wheel \
     && pip install -r requirements.txt \
-    && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
-    && apt-get purge --auto-remove -yqq $buildDeps \
-    && apt-get autoremove -yqq --purge \
-    && apt-get clean \
-    && rm -rf \
-        /var/lib/apt/lists/* \
-        /tmp/* \
-        /var/tmp/* \
-        /usr/share/man \
-        /usr/share/doc \
-        /usr/share/doc-base \
-    && python --version \
-    && pip freeze
+#     && apt-get purge --auto-remove -yqq $buildDeps \
+#     && apt-get autoremove -yqq --purge \
+#     && apt-get clean \
+#     && rm -rf \
+#         /var/lib/apt/lists/* \
+#         /tmp/* \
+#         /var/tmp/* \
+#         /usr/share/man \
+#         /usr/share/doc \
+#         /usr/share/doc-base \
+#     && python --version \
+#     && pip freeze
 
-## Begin JAVA installation
+# ## Begin JAVA installation
 
-# Java is required in order to spark-submit work
-# Install OpenJDK-17
-RUN apt-get update && \
-    apt-get install -y software-properties-common && \
-    apt-get install -y gnupg2 && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A && \
-    add-apt-repository "deb http://security.debian.org/debian-security bookworm/updates main" && \ 
-    apt-get update && \
-    apt-get install -y openjdk-17-jdk && \
-    pip freeze && \
-    java -version $$ \
-    javac -version
+# # Java is required in order to spark-submit work
+# # Install OpenJDK-17
+# RUN apt-get update && \
+#     apt-get install -y software-properties-common && \
+#     apt-get install -y gnupg2 && \
+#     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A && \
+#     add-apt-repository "deb http://security.debian.org/debian-security bookworm/updates main" && \ 
+#     apt-get update && \
+#     apt-get install -y openjdk-17-jdk && \
+#     pip freeze && \
+#     java -version $$ \
+#     javac -version
 
-# Setup JAVA_HOME
-RUN ln -s /usr/lib/jvm/java-17-openjdk-$(dpkg-architecture -qDEB_HOST_ARCH) /usr/lib/jvm/java-17-openjdk
-ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
-RUN export JAVA_HOME
+# # Setup JAVA_HOME
+# RUN ln -s /usr/lib/jvm/java-17-openjdk-$(dpkg-architecture -qDEB_HOST_ARCH) /usr/lib/jvm/java-17-openjdk
+# ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
+# RUN export JAVA_HOME
 
-## Finished JAVA installation
+# ## Finished JAVA installation
 
-## SPARK files and variables
+# ## SPARK files and variables
 
-ENV SPARK_HOME /usr/local/spark
+# ENV SPARK_HOME /usr/local/spark
 
-WORKDIR /tmp
+# WORKDIR /tmp
 
-# Spark submit binaries and jars (Spark binaries must be the same version of spark cluster)
-RUN wget --no-verbose "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
-        tar -xvzf "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
-        mkdir -p "${SPARK_HOME}/bin" && \
-        mkdir -p "${SPARK_HOME}/assembly/target/scala-2.12/jars" && \
-        cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/bin/." "${SPARK_HOME}/bin/" && \
-        cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/." "${SPARK_HOME}/assembly/target/scala-2.12/jars/" && \
-        rm "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
+# # Spark submit binaries and jars (Spark binaries must be the same version of spark cluster)
+# RUN wget --no-verbose "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
+#         tar -xvzf "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
+#         mkdir -p "${SPARK_HOME}/bin" && \
+#         mkdir -p "${SPARK_HOME}/assembly/target/scala-2.12/jars" && \
+#         cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/bin/." "${SPARK_HOME}/bin/" && \
+#         cp -a "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}/jars/." "${SPARK_HOME}/assembly/target/scala-2.12/jars/" && \
+#         rm "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
 
-# Create SPARK_HOME env var
-RUN export SPARK_HOME
-ENV PATH $PATH:/usr/local/spark/bin
+# # Create SPARK_HOME env var
+# RUN export SPARK_HOME
+# ENV PATH $PATH:/usr/local/spark/bin
 
-## Finished SPARK files and variables
+# ## Finished SPARK files and variables
 
-COPY script/entrypoint.sh /entrypoint.sh
-COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
+# COPY script/entrypoint.sh /entrypoint.sh
+# COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
 
-RUN chown -R airflow: ${AIRFLOW_HOME}
-RUN chmod +x entrypoint.sh
+# RUN chown -R airflow: ${AIRFLOW_HOME}
+# RUN chmod +x entrypoint.sh
 
-EXPOSE 8080 5555 8793
+# EXPOSE 8080 5555 8793
 
-USER airflow
-WORKDIR ${AIRFLOW_HOME}
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["webserver"]
+# USER airflow
+# WORKDIR ${AIRFLOW_HOME}
+# ENTRYPOINT ["/entrypoint.sh"]
+# CMD ["webserver"]
