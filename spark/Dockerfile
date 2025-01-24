@@ -36,7 +36,7 @@ RUN set -ex \
     && apt-get update -yqq \
     && apt-get upgrade -yqq \
     && apt-get install -yqq --no-install-recommends \
-        $buildDeps \
+        "$buildDeps" \
         freetds-bin \
         build-essential \
         default-libmysqlclient-dev \
@@ -52,14 +52,7 @@ RUN set -ex \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
     && pip install -U pip setuptools wheel \
-    && pip install pytz \
-    && pip install pyOpenSSL \
-    && pip install ndg-httpsclient \
-    && pip install pyasn1 \
     && pip install -r requirements.txt \
-    && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
-    && pip install apache-airflow-providers-apache-spark \
-    && pip install redis \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get autoremove -yqq --purge \
@@ -100,9 +93,10 @@ RUN export JAVA_HOME
 
 ENV SPARK_HOME /usr/local/spark
 
+WORKDIR /tmp
+
 # Spark submit binaries and jars (Spark binaries must be the same version of spark cluster)
-RUN cd "/tmp" && \
-        wget --no-verbose "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
+RUN wget --no-verbose "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
         tar -xvzf "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" && \
         mkdir -p "${SPARK_HOME}/bin" && \
         mkdir -p "${SPARK_HOME}/assembly/target/scala-2.12/jars" && \
