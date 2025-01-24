@@ -64,12 +64,11 @@ RUN set -ex \
 # JAVA installation
 
 RUN apt-get update && \
-    apt-get install -y software-properties-common && \
-    apt-get install -y gnupg2 && \
+    apt-get install -y --no-install-recommends software-properties-common gnupg2 && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A && \
     add-apt-repository "deb http://security.debian.org/debian-security bookworm/updates main" && \ 
     apt-get update && \
-    apt-get install -y openjdk-17-jdk && \
+    apt-get install -y --no-install-recommends openjdk-17-jdk && \
     apt-get autoremove -yqq --purge && \
     apt-get clean && \
     rm -rf \
