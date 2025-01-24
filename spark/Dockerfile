@@ -46,7 +46,7 @@ RUN set -ex \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
-    && pip install -U pip setuptools wheel \
+    && pip install -U pip setuptools==75.8.0 wheel==0.45.1 \
     && pip install -r requirements.txt \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get autoremove -yqq --purge \
@@ -75,7 +75,7 @@ RUN apt-get update && \
     javac -version
 
 # Setup JAVA_HOME
-RUN ln -s /usr/lib/jvm/java-17-openjdk-$(dpkg-architecture -qDEB_HOST_ARCH) /usr/lib/jvm/java-17-openjdk
+RUN ln -s "/usr/lib/jvm/java-17-openjdk-$(dpkg-architecture -qDEB_HOST_ARCH)" /usr/lib/jvm/java-17-openjdk
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk
 RUN export JAVA_HOME
 
@@ -105,8 +105,8 @@ ENV PATH $PATH:/usr/local/spark/bin
 COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow/airflow.cfg
 
-RUN chown -R airflow: ${AIRFLOW_HOME}
-RUN chmod +x /entrypoint.sh
+RUN chown -R airflow: ${AIRFLOW_HOME} && \
+    chmod +x /entrypoint.sh
 
 EXPOSE 8080 5555 8793
 
