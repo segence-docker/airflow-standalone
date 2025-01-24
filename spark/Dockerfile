@@ -70,6 +70,15 @@ RUN apt-get update && \
     add-apt-repository "deb http://security.debian.org/debian-security bookworm/updates main" && \ 
     apt-get update && \
     apt-get install -y openjdk-17-jdk && \
+    apt-get autoremove -yqq --purge && \
+    apt-get clean && \
+    rm -rf \
+        /var/lib/apt/lists/* \
+        /tmp/* \
+        /var/tmp/* \
+        /usr/share/man \
+        /usr/share/doc \
+        /usr/share/doc-base && \
     pip freeze && \
     java -version $$ \
     javac -version
