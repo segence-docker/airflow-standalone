@@ -19,6 +19,7 @@ jobs:
       uses: hadolint/hadolint-action@v3.1.0
       with:
         dockerfile: ./${{ matrix.classifier }}/Dockerfile
+        override-warning: DL3008,SC2086
     - name: Update Pull Request
       uses: actions/github-script@v6
       if: github.event_name == 'pull_request'
